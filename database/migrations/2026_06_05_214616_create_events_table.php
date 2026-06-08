@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('location');
             $table->dateTime('start_time');
             $table->text('description')->nullable();
-            $table->integer('Category_id')->nullable();
+            $table->foreignId('Category_id')->nullable()
+            ->constrained('categories');
             $table->integer('max-attendees')->nullable();
-            $table->integer('created_by')->nullable();
+            $table->foreignId('created_by')->nullable()
+            ->constrained('users');
             $table->timestamps('created_at');
         });
     }

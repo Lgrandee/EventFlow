@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-
-
 
 #[Fillable(['name', 'location', 'start_time', 'description', 'Category_id', 'max-attendees', 'created_by'])]
 class Event extends Model
@@ -24,4 +22,14 @@ class Event extends Model
         'max-attendees',
         'created_by',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'Category_id');
+    }
 }
