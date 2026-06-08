@@ -35,10 +35,27 @@
             </div> -->
 
                 <div>
-                    <a href="/login"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                        Inloggen
-                    </a>
+                    @guest
+                        <a href="{{ route('login') }}"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                            Inloggen
+                        </a>
+                    @endguest
+
+                    @auth
+                        <span class="text-gray-700 font-medium">
+                            Welkom, {{ Auth::user()->name }}
+                        </span>
+
+
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                                Uitloggen
+                            </button>
+                        </form>
+                    @endauth
                 </div>
             </div>
         </div>
