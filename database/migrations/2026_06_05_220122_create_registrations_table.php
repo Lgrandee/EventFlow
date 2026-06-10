@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id');
             $table->integer('event_id');
-            $table->timestamp('registrated_at');
+            $table->timestamp('registrated_at')->useCurrent();
         });
     }
 

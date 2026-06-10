@@ -34,6 +34,11 @@ class User extends Authenticatable implements PasskeyUser
         ];
     }
 
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_user', 'user_id', 'event_id');
+    }
+
     /**
      * Get the user's initials
      */
