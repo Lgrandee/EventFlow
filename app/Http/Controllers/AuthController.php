@@ -49,11 +49,11 @@ class AuthController extends Controller
     public function authenticated(Request $request, $user)
     {
         return match ($user->role) {
-            'admin' => redirect()->route('AdminDashboard'),
-            'organizer' => redirect()->route('OrganizerDashboard'),
+            'Admin' => redirect()->route('AdminDashboard'),
+            'Organizator' => redirect()->route('OrganizerDashboard'),
             'user' => redirect()->route('UserDashboard'),
             default => redirect()->route('home'),
-        };
+        };  
     }
 
     public function AdminDashboard()

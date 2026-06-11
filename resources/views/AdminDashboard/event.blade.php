@@ -8,15 +8,7 @@
                     <p class="text-gray-600">{{ $event->start_time }}</p>
                     <p class="text-gray-600">{{ $event->location}}</p>
                     <p class="text-gray-600">{{ $event->category?->name ?? 'Uncategorized' }}</p>
-                    <p>
-                        Plaatsen:
-                        {{ $event->registrations->count() }}/{{ $event->max_attendees }}
-                    </p>
-                    @if($event->registrations->count() >= $event->max_attendees)
-                        <span class="bg-red-500 text-white px-2 py-1 rounded">
-                            Volgeboekt
-                        </span>
-                    @endif
+                    <p class="text-gray-600">{{ $event->max_attendees }}</p>
                     <a href="{{ route('events.show', $event) }}" class="bg-blue-950 text-white border rounded-lg p-2 w-27">View
                         Details</a>
                 </div>

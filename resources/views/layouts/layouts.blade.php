@@ -42,6 +42,12 @@
                         </a>
                     @endguest
 
+                    @if(optional(auth()->user())->role === 'Admin')
+                        <a href="{{ route('AdminDashboard') }}">Admin Dashboard</a>
+                        <a href="{{ route('EventAdminController') }}">Event Dashboard</a>
+                        <a href="{{ route('events.create') }}">CreateEvent</a>
+
+                    @endif
                     @auth
                         <span class="text-gray-700 font-medium">
                             Welkom, {{ Auth::user()->name }}
@@ -56,11 +62,14 @@
                             </button>
                         </form>
                     @endauth
+
+
                 </div>
             </div>
         </div>
     </nav>
     @yield('content')
+    
     <footer class="bg-gray-900 text-white mt-16">
         <div class="max-w-7xl mx-auto px-4 py-10">
             <div class="grid md:grid-cols-3 gap-8">

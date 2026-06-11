@@ -21,5 +21,21 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('password'),
             ]
         );
+        User::updateOrCreate(
+            ['email' => 'Admin@test.com'],
+            [
+                'name' => 'Admin',
+                'role' => 'Admin',
+                'password' => bcrypt('password'),
+            ]
+        );
+         User::updateOrCreate(
+            ['email' => 'Lisa@test.com'],
+            [
+                'name' => 'Lisa',
+                'role' => 'user',
+                'password' => bcrypt('password'),
+            ]
+        );
     }
 }

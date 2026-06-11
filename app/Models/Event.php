@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'location', 'start_time', 'description', 'Category_id', 'max-attendees', 'created_by'])]
 class Event extends Model
 {
     use HasFactory;
@@ -19,7 +17,7 @@ class Event extends Model
         'start_time',
         'description',
         'Category_id',
-        'max-attendees',
+        'max_attendees',
         'created_by',
     ];
 
@@ -35,10 +33,16 @@ class Event extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'event_user', 'event_id', 'user_id');
+        return $this->belongsToMany(
+            User::class,
+            'event_user',
+            'event_id',
+            'user_id'
+        );
     }
+
     public function registrations()
     {
-        return $this->hasMany(Registration::class, 'event_id');
+        return $this->hasMany(Registration::class);
     }
 }

@@ -20,7 +20,7 @@ class EventSeeder extends Seeder
                 'start_time' => '2024-09-15 09:00:00',
                 'description' => 'A conference for tech enthusiasts to discuss the latest trends in technology.',
                 'Category_id' => 1,
-                'max-attendees' => 500,
+                'max-attendees' => 1,
                 'created_by' => 1,
             ]
         );
