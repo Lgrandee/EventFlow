@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +23,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            return $this->authenticated($request, Auth::user());
         }
 
         return back()->withErrors([
@@ -37,12 +38,37 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 
     public function showRegister()
     {
         return view('auth.register');
+    }
+
+    public function authenticated(Request $request, $user)
+    {
+        return match ($user->role) {
+            'admin' => redirect()->route('AdminDashboard'),
+            'organizer' => redirect()->route('OrganizerDashboard'),
+            'user' => redirect()->route('UserDashboard'),
+            default => redirect()->route('home'),
+        };
+    }
+
+    public function AdminDashboard()
+    {
+        return view('dashboards.admin');
+    }
+
+    public function OrganizerDashboard()
+    {
+        return view('dashboards.organizer');
+    }
+
+    public function ParticipantDashboard()
+    {
+        return view('dashboards.participant');
     }
 
     public function register(Request $request)
@@ -53,7 +79,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
@@ -61,6 +87,17 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        return $this->authenticated($request, $user);
+    }
+
+    public function dashboardRedirect(Request $request)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        return $this->authenticated($request, $user);
     }
 }

@@ -15,4 +15,7 @@ Route::get('/', [EventController::class, 'index'])->name('home');
 Route::get('/events', [EventController::class, 'index'])->name('events.index');
 Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
 Route::post('/events/{event}/register', [EventController::class, 'store']) ->middleware('auth')->name('events.register');
-require __DIR__.'/settings.php';
+
+Route::get('/UserDashboard', function () {return view('UserDashboard.index');})->middleware('auth')->name('UserDashboard');
+Route::get('/AdminDashboard', function () {return view('AdminDashboard.index');})->middleware('auth')->name('AdminDashboard');
+Route::get('/OrganizerDashboard', function () {return view('OrganizerDashboard.index');})->middleware('auth')->name('OrganizerDashboard');

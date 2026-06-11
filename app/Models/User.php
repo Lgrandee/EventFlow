@@ -34,6 +34,21 @@ class User extends Authenticatable implements PasskeyUser
         ];
     }
 
+    const DEELNEMER = 'deelnemer';
+
+    const ORGANISATOR = 'organisator';
+
+    const HOOFDBEHEERDER = 'hoofdbeheerder';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+    ];
+
+    
+
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_user', 'user_id', 'event_id');
