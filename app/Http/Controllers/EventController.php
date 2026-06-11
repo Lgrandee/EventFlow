@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
@@ -56,8 +57,9 @@ class EventController extends Controller
         }
 
         $event->registrations()->create([
-            'user_id' => Auth::user()->id(),
+            'user_id' => Auth::id(),
             'event_id' => $event->id,
+            'registrated_at' => now(),
         ]);
 
         return back()->with('success', 'Je bent succesvol ingeschreven!');
@@ -89,13 +91,15 @@ class EventController extends Controller
             'max_attendees' => 'required|integer|min:1',
         ]);
 
-        $event->update([
+        $event->fill([
             'name' => $request->name,
             'description' => $request->description,
             'start_time' => $request->start_time,
             'location' => $request->location,
             'max_attendees' => $request->max_attendees,
         ]);
+
+        $event->save();
 
         return redirect()
             ->route('AdminController.show', ['event' => $event->id])

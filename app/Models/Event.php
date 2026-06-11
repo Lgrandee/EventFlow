@@ -9,14 +9,12 @@ class Event extends Model
 {
     use HasFactory;
 
-    protected $table = 'events';
-
     protected $fillable = [
         'name',
         'location',
         'start_time',
         'description',
-        'Category_id',
+        'category_id',
         'max_attendees',
         'created_by',
     ];
@@ -28,7 +26,7 @@ class Event extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'Category_id');
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function users()
@@ -43,6 +41,6 @@ class Event extends Model
 
     public function registrations()
     {
-        return $this->hasMany(Registration::class);
+        return $this->hasMany(Registration::class, 'event_id');
     }
 }

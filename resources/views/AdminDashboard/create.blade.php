@@ -2,7 +2,7 @@
     @section('content')
         <div class=" content-center flex flex-col items-center mt-10">
             <div class="text-left mb-6 p-4 border rounded-lg shadow-sm w-7/12 place-content-between gap-3 flex flex-col">
-              <form action="{{ route('events.create') }}" method="POST">
+              <form action="{{ route('events.store ') }}" method="POST">
                 @csrf
                 <div class="mb-4">
                   <label for="name" class="block text-gray-700 font-bold mb-2">Event Name</label>
