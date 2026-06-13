@@ -37,7 +37,7 @@ Route::get('/', [EventController::class, 'index'])
 Route::get('/events', [EventController::class, 'index'])
     ->name('events.index');
 
-Route::get('/events/{event}', [EventController::class, 'show'])
+Route::get('/events/{event}/show', [EventController::class, 'show'])
     ->name('events.show');
 
 /*
@@ -69,6 +69,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/AdminDashboard', function () {
         return view('AdminDashboard.index');
     })->name('AdminDashboard');
+
+    // AANGEPAST: Verwijst nu naar de EventController om $events op te halen en mee te sturen
+    Route::get('/UserDashboard/userevent', [EventController::class, 'userEvents'])
+        ->name('userevent');
+
 });
 
 /*
@@ -105,5 +110,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/AdminDashboard/delete/{event}', [EventController::class, 'destroy'])
         ->name('events.destroy');
 
+    // Confirm Event
+    Route::get('/events/{event}/confirm', [EventController::class, 'confirm'])
+        ->middleware('auth')
+        ->name('events.confirm');
 
 });

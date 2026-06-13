@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use App\models\Event;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -47,11 +48,10 @@ class User extends Authenticatable implements PasskeyUser
         'role',
     ];
 
-    
-
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_user', 'user_id', 'event_id');
+        return $this->belongsToMany(Event::class);
     }
 
     /**
@@ -65,4 +65,8 @@ class User extends Authenticatable implements PasskeyUser
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
+
+  
+
+
 }
