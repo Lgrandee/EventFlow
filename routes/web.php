@@ -1,118 +1,53 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Authentication
+| Publieke Routes
 |--------------------------------------------------------------------------
 */
-
-Route::get('/login', [AuthController::class, 'showLogin'])
-    ->name('login');
-
-Route::post('/login', [AuthController::class, 'login'])
-    ->name('login.store');
-
-Route::get('/register', [AuthController::class, 'showRegister'])
-    ->name('register');
-
-Route::post('/register', [AuthController::class, 'register'])
-    ->name('register.store');
-
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->name('logout');
+Route::get('/', [EventController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
+Route::get('/events/{event}/confirm', [EventController::class, 'confirm'])->name('events.confirm');
 
 /*
 |--------------------------------------------------------------------------
-| Public Event Pages
+| Beveiligde Routes (Ingetogd verplicht)
 |--------------------------------------------------------------------------
 */
+Route::middleware(['auth'])->group(function () {
+    
+    // Deelnemer Dashboard & Acties
+    Route::get('/UserDashboard', [EventController::class, 'userEvents'])->name('userevent');
+    Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
+    Route::delete('/events/{event}/unregister', [RegistrationController::class, 'destroy'])->name('events.unregister');
 
-Route::get('/', [EventController::class, 'index'])
-    ->name('home');
+    /*
+    |--------------------------------------------------------------------------
+    | MANAGEMENT PANEEL (Alleen voor Organizer en Admin)
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('admin')->group(function () {
+        
+        // Evenementenbeheer (Voor Organizer en Admin)
+        Route::get('/events', [EventController::class, 'adminIndex'])->name('admin.events');
+        Route::get('/events/create', [EventController::class, 'create'])->name('admin.events.create');
+        Route::post('/events', [EventController::class, 'store'])->name('admin.events.store');
+        Route::get('/events/{event}', [EventController::class, 'adminShow'])->name('admin.events.show');
+        Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('admin.events.edit');
+        Route::put('/events/{event}', [EventController::class, 'update'])->name('admin.events.update');
+        
+        // Categorieënbeheer (Specifiek voor de Organisator & Admin)
+        Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
+        Route::get('/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
 
-Route::get('/events', [EventController::class, 'index'])
-    ->name('events.index');
-
-Route::get('/events/{event}/show', [EventController::class, 'show'])
-    ->name('events.show');
-
-/*
-|--------------------------------------------------------------------------
-| Event Registration
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/events/{event}/register', [EventController::class, 'register'])
-    ->middleware('auth')
-    ->name('events.register');
-
-/*
-|--------------------------------------------------------------------------
-| Dashboards
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware('auth')->group(function () {
-
-    Route::get('/UserDashboard', function () {
-        return view('UserDashboard.index');
-    })->name('UserDashboard');
-
-    Route::get('/OrganizerDashboard', function () {
-        return view('OrganizerDashboard.index');
-    })->name('OrganizerDashboard');
-
-    Route::get('/AdminDashboard', function () {
-        return view('AdminDashboard.index');
-    })->name('AdminDashboard');
-
-    // AANGEPAST: Verwijst nu naar de EventController om $events op te halen en mee te sturen
-    Route::get('/UserDashboard/userevent', [EventController::class, 'userEvents'])
-        ->name('userevent');
-
-});
-
-/*
-|--------------------------------------------------------------------------
-| Admin Event Management
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware('auth')->group(function () {
-
-    // Event overview
-    Route::get('/AdminDashboard/event', [EventController::class, 'adminIndex'])
-        ->name('EventAdminController');
-
-    // Create event
-    Route::get('/AdminDashboard/create', [EventController::class, 'create'])
-        ->name('events.create');
-
-    Route::post('/AdminDashboard/store', [EventController::class, 'store'])
-        ->name('events.store');
-
-    // View event details
-    Route::get('/AdminDashboard/show/{event}', [EventController::class, 'adminShow'])
-        ->name('AdminController.show');
-
-    // Edit event
-    Route::get('/AdminDashboard/edit/{event}', [EventController::class, 'edit'])
-        ->name('events.edit');
-
-    Route::put('/AdminDashboard/update/{event}', [EventController::class, 'update'])
-        ->name('events.update');
-
-    // Delete event
-    Route::delete('/AdminDashboard/delete/{event}', [EventController::class, 'destroy'])
-        ->name('events.destroy');
-
-    // Confirm Event
-    Route::get('/events/{event}/confirm', [EventController::class, 'confirm'])
-        ->middleware('auth')
-        ->name('events.confirm');
-
+        // Alleen de Admin mag events écht verwijderen
+        Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('admin.events.destroy');
+    });
 });

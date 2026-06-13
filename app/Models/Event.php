@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
@@ -19,28 +21,18 @@ class Event extends Model
         'created_by',
     ];
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class);
     }
 
-    public function users()
+    public function registrations(): HasMany
     {
-        return $this->belongsToMany(
-            User::class,
-            'event_user',
-            'event_id',
-            'user_id'
-        );
-    }
-
-    public function registrations()
-    {
-        return $this->hasMany(Registration::class, 'event_id');
+        return $this->hasMany(Registration::class);
     }
 }
