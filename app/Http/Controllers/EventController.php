@@ -2,152 +2,205 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Event;
+use App\Models\Category;
 use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
+    private function getDashboardFolder(): string
+    {
+        return Auth::check() && Auth::user()->role === 'Organizer'
+            ? 'OrganizerDashboard'
+            : 'AdminDashboard';
+    }
+
     public function index()
     {
-        $events = Event::with(['category', 'creator', 'registrations'])->get();
-
-        return view('events.index', compact('events'));
-    }
-
-    public function show(Event $event)
-    {
-        $event->load(['category', 'creator', 'registrations']);
-
-        return view('events.show', compact('event'));
-    }
-
-    public function create()
-    {
-        $categories = Category::all();
-
-        return view('AdminDashboard.create', compact('categories'));
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'start_time' => 'required|date',
-            'location' => 'required|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'max_attendees' => 'required|integer|min:1',
-        ]);
-
-        // Using query() explicitly tells Intelephense this is an Eloquent builder instance
-        Event::query()->create($data);
-
-        return to_route('admin.events')
-            ->with('success', 'Event aangemaakt');
-    }
-
-    public function register(Event $event)
-    {
-        $userId = Auth::id();
-
-        // 1. Controleer of de gebruiker al is ingeschreven
-        if (Registration::query()->where('event_id', $event->id)
-            ->where('user_id', $userId)
-            ->exists()) {
-            // Als ze al ingeschreven zijn, sturen we ze naar het dashboard met een melding
-            return to_route('userevent')->with('error', 'Je bent al ingeschreven voor dit evenement.');
-        }
-
-        // 2. Controleer of het evenement vol zit
-        if ($event->registrations()->count() >= $event->max_attendees) {
-            return to_route('events.index')->with('error', 'Inschrijven mislukt: Dit evenement is vol.');
-        }
-
-        // 3. Sla de inschrijving op
-        Registration::query()->create([
-            'user_id' => $userId,
-            'event_id' => $event->id,
-            'registrated_at' => now(),
-        ]);
-
-        // HIER GEBEURT HET: Stuur de gebruiker direct door naar de hoofdpagina met een succesmelding
-        return to_route('events.index')->with('success', 'Je bent succesvol ingeschreven voor '.$event->name.'!');
-    }
-
-    public function userEvents()
-    {
-        // Haal alle ingeschreven evenementen op via de registraties van de gebruiker
-        $allEvents = Auth::user()
-            ->registrations()
-            ->with('event.category') // Direct ook de categorie inladen
-            ->get()
-            ->map(fn ($r) => $r->event);
-
-        // Splits de evenementen op in aankomend en afgelopen
-        $upcomingEvents = $allEvents->filter(function ($event) {
-            return \Carbon\Carbon::parse($event->start_time)->isFuture();
-        });
-
-        $pastEvents = $allEvents->filter(function ($event) {
-            return \Carbon\Carbon::parse($event->start_time)->isPast();
-        });
-
-        // Geef beide lijstjes door naar de view
-        return view('UserDashboard.userevent', compact('upcomingEvents', 'pastEvents'));
+        return view('events.index', ['events' => Event::all()]);
     }
 
     public function adminIndex()
     {
-        $events = Event::with(['category', 'creator', 'registrations'])->get();
+        if (Auth::user()->role !== 'Admin') {
+            return redirect('/');
+        }
 
-        return view('AdminDashboard.event', compact('events'));
+        return view('AdminDashboard.index', ['events' => Event::all()]);
     }
 
-    public function adminShow(Event $event)
+    // organizerIndex is intentionally unused by current routes.
+    public function organizerIndex()
     {
-        $event->load(['category', 'creator', 'registrations']);
+        if (Auth::user()->role !== 'Organizer') {
+            return redirect('/');
+        }
 
-        return view('AdminDashboard.show', compact('event'));
+        return view('OrganizerDashboard.index', ['events' => Event::all()]);
+    }
+
+    public function create()
+    {
+        return view($this->getDashboardFolder() . '.create', [
+            'categories' => Category::all(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'location' => ['required', 'string', 'max:255'],
+            'date' => ['required', 'date'],
+            'max_tickets' => ['required', 'integer', 'min:0'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+        ]);
+
+        // Align form field `date` with DB column `start_time`
+        $payload = [
+            'name' => $validated['title'],
+            'description' => $validated['description'],
+            'location' => $validated['location'],
+            'start_time' => $validated['date'],
+            'max_attendees' => $validated['max_tickets'],
+            'category_id' => $validated['category_id'],
+            'created_by' => Auth::id(),
+        ];
+
+        Event::create($payload);
+
+        $routeName = Auth::user()->role === 'Organizer'
+            ? 'OrganizerDashboard'
+            : 'admin.events';
+
+        return redirect()->route($routeName)->with('success', 'Evenement aangemaakt!');
     }
 
     public function edit(Event $event)
     {
-        $categories = Category::all();
-
-        return view('AdminDashboard.edit', compact('event', 'categories'));
+        return view($this->getDashboardFolder() . '.edit', [
+            'event' => $event,
+            'categories' => Category::all(),
+        ]);
     }
 
     public function update(Request $request, Event $event)
     {
-        $event->update($request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'start_time' => 'required|date',
-            'location' => 'required|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'max_attendees' => 'required|integer|min:1',
-        ]));
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'location' => ['required', 'string', 'max:255'],
+            'date' => ['required', 'date'],
+            'max_tickets' => ['required', 'integer', 'min:0'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+        ]);
 
-        // Using to_route() prevents method chaining syntax errors in your IDE
-        return to_route('admin.events.show', $event)
-            ->with('success', 'Event bijgewerkt');
+        $payload = [
+            'name' => $validated['title'],
+            'description' => $validated['description'],
+            'location' => $validated['location'],
+            'start_time' => $validated['date'],
+            'max_attendees' => $validated['max_tickets'],
+            'category_id' => $validated['category_id'],
+        ];
+
+        $event->update($payload);
+
+        $routeName = Auth::user()->role === 'Organizer'
+            ? 'OrganizerDashboard'
+            : 'admin.events';
+
+        return redirect()->route($routeName)->with('success', 'Evenement bijgewerkt!');
     }
 
     public function destroy(Event $event)
     {
         $event->delete();
 
-        return to_route('admin.events')
-            ->with('success', 'Event verwijderd');
+        $routeName = Auth::user()->role === 'Organizer'
+            ? 'OrganizerDashboard'
+            : 'admin.events';
+
+        return redirect()->route($routeName)->with('success', 'Evenement verwijderd.');
     }
 
+    /**
+     * Show registration confirmation page.
+     */
     public function confirm(Event $event)
     {
-        $event->load(['category', 'creator', 'registrations']);
+        $this->authorizeUserForRegistration($event);
 
-        return view('events.confirm', compact('event'));
+        $event->load('registrations');
+
+        return view('events.confirm', ['event' => $event]);
+    }
+
+    /**
+     * Create a registration for the logged-in user.
+     */
+    public function register(Request $request, Event $event)
+    {
+        $this->authorizeUserForRegistration($event);
+
+        $userId = Auth::id();
+
+        $alreadyRegistered = Registration::query()
+            ->where('user_id', $userId)
+            ->where('event_id', $event->id)
+            ->exists();
+
+        if ($alreadyRegistered) {
+            return redirect()->route('events.show', $event)
+                ->with('error', 'Je bent al ingeschreven voor dit evenement.');
+        }
+
+        $registeredCount = $event->registrations()->count();
+        $max = $event->max_attendees;
+
+        if ($max !== null && $registeredCount >= (int) $max) {
+            return redirect()->route('events.show', $event)
+                ->with('error', 'Dit evenement is volgeboekt.');
+        }
+
+        Registration::create([
+            'user_id' => $userId,
+            'event_id' => $event->id,
+            // registration migration has a column registrated_at with default useCurrent()
+            'registrated_at' => now(),
+        ]);
+
+        return redirect()->route('events.show', $event)
+            ->with('success', 'Je inschrijving is bevestigd.');
+    }
+
+    private function authorizeUserForRegistration(Event $event): void
+    {
+        if (!Auth::check()) {
+            // routes are already under auth, but keep it safe
+            abort(403);
+        }
+
+        // Ensure creator can't register for own event (optional, but usually desirable)
+        if ($event->created_by !== null && (int) $event->created_by === (int) Auth::id()) {
+            abort(403);
+        }
+    }
+
+    public function userEvents()
+    {
+        $user = Auth::user();
+
+        $registeredEvents = $user
+            ? $user->registrations()->with('event')->get()->pluck('event')->filter()
+            : collect();
+
+        return view('UserDashboard.index', ['registeredEvents' => $registeredEvents]);
     }
 }
+
+
+
