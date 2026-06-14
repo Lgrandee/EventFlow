@@ -7,15 +7,10 @@ use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATIE ROUTES
-|--------------------------------------------------------------------------
-*/
+// AUTHENTICATIE ROUTES
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.store');
 
-// Uitloggen (POST-ONLY om 405-fouten te voorkomen)
 Route::post('/logout', function () {
     Auth::logout();
     request()->session()->invalidate();
@@ -23,35 +18,24 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
-/*
-|--------------------------------------------------------------------------
-| PUBLIEKE ROUTES
-|--------------------------------------------------------------------------
-*/
+// PUBLIEKE ROUTES
 Route::get('/', [EventController::class, 'index'])->name('events.index');
 Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
 Route::get('/events/{event}/confirm', [EventController::class, 'confirm'])->name('events.confirm');
 
-/*
-|--------------------------------------------------------------------------
-| BEVEILIGDE ROUTES
-|--------------------------------------------------------------------------
-*/
+// BEVEILIGDE ROUTES
 Route::middleware(['auth'])->group(function () {
-    // Deelnemer Dashboard
+    // Deelnemer
     Route::get('/UserDashboard', [EventController::class, 'userEvents'])->name('UserDashboard');
-
     Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
     Route::delete('/events/{event}/unregister', [RegistrationController::class, 'destroy'])->name('events.unregister');
 
-    // Dashboard routes (role-based in controller)
+    // Admin & Organizer
     Route::prefix('admin')->group(function () {
         Route::get('/admin-dashboard', [AuthController::class, 'AdminDashboard'])->name('AdminDashboard');
         Route::get('/organizer-dashboard', [AuthController::class, 'OrganizerDashboard'])->name('OrganizerDashboard');
-    });
 
-    // MANAGEMENT PANEEL
-    Route::prefix('admin')->group(function () {
+        // Events
         Route::get('/events', [EventController::class, 'adminIndex'])->name('admin.events');
         Route::get('/events/create', [EventController::class, 'create'])->name('admin.events.create');
         Route::post('/events', [EventController::class, 'store'])->name('admin.events.store');
@@ -60,10 +44,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/events/{event}', [EventController::class, 'update'])->name('admin.events.update');
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('admin.events.destroy');
 
+        // Categories
         Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
         Route::get('/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create');
         Route::post('/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
     });
 });
-

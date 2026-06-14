@@ -90,7 +90,7 @@
                                         </a>
 
                                         {{-- Edit Knop --}}
-                                        <a href="{{ route('admin.events.edit', $event) }}"
+                                        <a href="{{ route('AdminDashboard.edit', $event) }}"
                                             class="text-indigo-600 hover:text-indigo-900 font-medium text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition">
                                             Edit
                                         </a>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -58,12 +59,18 @@ class AuthController extends Controller
 
     public function AdminDashboard()
     {
-        return view('dashboards.admin');
+        return view('AdminDashboard.index');
     }
 
     public function OrganizerDashboard()
     {
-        return view('dashboards.organizer');
+        // Fetch events associated with the logged-in user
+        $events = Event::where('user_id', Auth::id())
+                       ->with('category')
+                       ->latest()
+                       ->get();
+
+        return view('OrganizerDashboard.index', compact('events'));
     }
 
     public function ParticipantDashboard()

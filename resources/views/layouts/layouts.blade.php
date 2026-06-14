@@ -40,7 +40,7 @@
 
                         {{-- Organizer Links --}}
                         @if(auth()->user()->role === 'Organizer')
-                            <a href="{{ route('organizer.dashboard') }}"
+                            <a href="{{ route('OrganizerDashboard') }}"
                                 class="text-blue-900 hover:text-blue-700 font-semibold border-r pr-4 border-gray-300 text-sm transition">Mijn
                                 Dashboard</a>
                             <a href="{{ route('admin.categories.index') }}"
@@ -51,11 +51,11 @@
                         @endif
 
                         {{-- Algemeen --}}
-                        <a href="{{ route('userevent') }}"
+                        <a href="{{ route('UserDashboard') }}"
                             class="text-indigo-600 hover:text-indigo-800 font-medium border-r pr-4 border-gray-300 text-sm transition">Mijn
                             Profiel</a>
 
-                        {{-- Uitloggen (POST methode voor veiligheid) --}}
+                        {{-- Uitloggen --}}
                         <form action="{{ route('logout') }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="text-red-600 hover:text-red-900 font-semibold cursor-pointer">
